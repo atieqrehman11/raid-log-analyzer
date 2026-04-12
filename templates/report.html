@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Health Report — {{ project_name }}</title>
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Inter, Arial, sans-serif;
+      background: #0d1b2a;
+      color: #e8edf3;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+    a { color: #4fc3f7; }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      margin-bottom: 2rem;
+    }
+    .header-left h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+    .header-left .meta {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 0.3rem;
+    }
+
+    /* ── RAG badge ── */
+    .rag-badge {
+      display: inline-block;
+      padding: 0.35rem 1rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .rag-on-track  { background: rgba(46,204,113,0.18); color: #2ecc71; border: 1px solid #2ecc71; }
+    .rag-at-risk   { background: rgba(243,156,18,0.18); color: #f39c12; border: 1px solid #f39c12; }
+    .rag-critical  { background: rgba(231,76,60,0.18);  color: #e74c3c; border: 1px solid #e74c3c; }
+
+    /* ── Score hero ── */
+    .score-hero {
+      text-align: center;
+      padding: 2rem 1rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      margin-bottom: 2rem;
+    }
+    .score-hero .score-number {
+      font-size: 5rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+    .score-hero .score-label {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .color-on-track  { color: #2ecc71; }
+    .color-at-risk   { color: #f39c12; }
+    .color-critical  { color: #e74c3c; }
+
+    /* ── Section titles ── */
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.10em;
+      color: rgba(255,255,255,0.40);
+      margin-bottom: 0.9rem;
+    }
+
+    /* ── Dimension cards ── */
+    .dimensions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+    .dim-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 0.9rem 0.75rem;
+      text-align: center;
+    }
+    .dim-card .dim-score {
+      font-size: 1.9rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .dim-card .dim-name {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.50);
+      margin-top: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Prose sections ── */
+    .prose-section {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.7;
+      font-size: 0.93rem;
+      color: rgba(255,255,255,0.82);
+    }
+
+    /* ── Recommendations ── */
+    .rec-list {
+      list-style: none;
+      counter-reset: rec-counter;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .rec-list li {
+      counter-increment: rec-counter;
+      display: flex;
+      gap: 0.9rem;
+      align-items: flex-start;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      font-size: 0.93rem;
+      color: rgba(255,255,255,0.82);
+      line-height: 1.6;
+    }
+    .rec-list li::before {
+      content: counter(rec-counter);
+      flex-shrink: 0;
+      width: 1.6rem;
+      height: 1.6rem;
+      border-radius: 50%;
+      background: rgba(79,195,247,0.15);
+      color: #4fc3f7;
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.1rem;
+    }
+
+    /* ── Contributing factors ── */
+    .factors-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .factor-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      background: rgba(231,76,60,0.07);
+      border: 1px solid rgba(231,76,60,0.20);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.88rem;
+    }
+    .factor-icon {
+      flex-shrink: 0;
+      font-size: 1rem;
+      margin-top: 0.05rem;
+    }
+    .factor-body .factor-label {
+      font-weight: 600;
+      color: #e8edf3;
+    }
+    .factor-body .factor-meta {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.40);
+      margin-top: 0.2rem;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.25);
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <h1>{{ project_name }}</h1>
+        <div class="meta">Generated {{ generated_at }}</div>
+      </div>
+      <div>
+        {% set rag_class = "rag-on-track" if result.rag_status == "On Track" else ("rag-critical" if result.rag_status == "Critical" else "rag-at-risk") %}
+        <span class="rag-badge {{ rag_class }}">{{ result.rag_status }}</span>
+      </div>
+    </div>
+
+    <!-- Health Score Hero -->
+    {% set score_color = "color-on-track" if result.rag_status == "On Track" else ("color-critical" if result.rag_status == "Critical" else "color-at-risk") %}
+    <div class="score-hero">
+      <div class="score-number {{ score_color }}">{{ result.composite }}</div>
+      <div class="score-label">Composite Health Score / 100</div>
+    </div>
+
+    <!-- Dimension Scores -->
+    <div class="section-title">Dimension Scores</div>
+    <div class="dimensions-grid">
+      {% set dims = [
+        ("Time",         result.dimensions.time),
+        ("Cost",         result.dimensions.cost),
+        ("Scope",        result.dimensions.scope),
+        ("People",       result.dimensions.people),
+        ("Dependencies", result.dimensions.dependencies),
+        ("Risks",        result.dimensions.risks),
+      ] %}
+      {% for name, score in dims %}
+        {% set dim_color = "color-on-track" if score >= 75 else ("color-critical" if score < 50 else "color-at-risk") %}
+        <div class="dim-card">
+          <div class="dim-score {{ dim_color }}">{{ score | int }}</div>
+          <div class="dim-name">{{ name }}</div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Executive Summary -->
+    {% if result.executive_summary %}
+    <div class="section-title">Executive Summary</div>
+    <div class="prose-section">{{ result.executive_summary }}</div>
+    {% endif %}
+
+    <!-- Recommendations -->
+    {% if result.recommendations %}
+    <div class="section-title">Recommendations</div>
+    <ol class="rec-list" style="margin-bottom:1.5rem;">
+      {% for rec in result.recommendations %}
+        <li>{{ rec }}</li>
+      {% endfor %}
+    </ol>
+    {% endif %}
+
+    {% if result.composite < 70 and result.contributing_factors %}
+    <!-- Contributing Factors (only shown when composite < 70) -->
+    <div class="section-title">Top Contributing Factors</div>
+    <div class="factors-list" style="margin-bottom:1.5rem;">
+      {% for factor in result.contributing_factors %}
+      <div class="factor-item">
+        <div class="factor-icon">⚠️</div>
+        <div class="factor-body">
+          <div class="factor-label">{{ factor.label }}</div>
+          <div class="factor-meta">{{ factor.dimension }} · {{ factor.source_sheet }} · {{ factor.row_reference }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="footer">
+      Project Predictive Analyzer &mdash; {{ generated_at }}
+    </div>
+
+  </div>
+</body>
+</html>
