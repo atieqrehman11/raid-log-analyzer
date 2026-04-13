@@ -50,18 +50,18 @@ UI-first approach: Task 1 delivers a fully runnable Chainlit app with mock data 
     - Test `generate_html` raises `ReportError` on incomplete `AnalysisResult`
     - _Requirements: 6.4, 7.5_
 
-- [ ] 2. Checkpoint — UI review
+- [x] 2. Checkpoint — UI review
   - Run `chainlit run app.py`, confirm radar chart and HTML report render correctly with mock data. Ask the user if any UI changes are needed before proceeding.
 
 - [ ] 3. Data Models + RAMID Parser
   - [ ] 3.1 Create `core/config.py` — `ThresholdConfig` loader
-    - Implement `load_config(project_name: str) -> ThresholdConfig`
-    - Look up `configs/{project_name}.json`; fall back to `configs/default.json`
+    - Implement `load_config -> ThresholdConfig`
+    - Look up `configs/default.json`
     - Validate via Pydantic on load; surface `ValidationError` to caller
     - _Requirements: 3.2, 3.3, 3.4_
 
   - [ ] 3.2 Create `configs/default.json` with equal weights and system defaults
-    - Six equal weights (each 1/6), `overdue_age_limit_days: 30`, `assumption_staleness_days: 90`, `team_overload_limit: 5`
+    - Six equal weights (each 1/6), `overdue_age_limit_days: 30`, `assumption_staleness_days: 90`, `team_overload_limit: 5`, `milestone_at_risk_weight: 0.3`, `high_severity_risk_weight: 0.4`, `kpi_lookback_months: 3`	
     - _Requirements: 3.3_
 
   - [ ] 3.3 Implement `core/parser.py` — `parse(file_path: str) -> RAMIDData`
